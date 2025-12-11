@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ACHETEUR
+  VENDEUR
+  ADMIN
+}
+
+model User {
+ id       String      @id @default(cuid())
+ name     String?
+ email    String?     @unique
+ role     Role        @default(ACHETEUR)
+ hashedPassword     String?
+ isBanned     Boolean     @default(false)
+}
