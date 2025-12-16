@@ -30,4 +30,9 @@ export class AppController {
   loginUser(@Body() loginUserDto: LoginUserDto): Observable<{ accessToken: string }> {
     return this.usersClient.send<{ accessToken: string }>('login_user', loginUserDto);
   }
+
+  @Post('logout')
+  logoutUser(@Body('refresh_token') refresh_token: string): Observable<{ message: string }> {
+    return this.usersClient.send<{ message: string }>('logout_user', { refresh_token });
+  }
 }

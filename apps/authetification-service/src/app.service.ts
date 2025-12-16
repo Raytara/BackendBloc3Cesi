@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from './prisma/prismaService'; 
 import { LoginUserDto } from './dto/login-user.dto';
+import { LogoutUserDto } from './dto/logout-user.dto';
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -166,5 +167,34 @@ export class AppService implements OnModuleInit {
       console.error('Failed to login:', error);
       throw new Error('Invalid credentials');
     }
+  }
+
+  async logout(logoutUserDto: LogoutUserDto) {
+    try {
+      const logoutUrl = `${this.configService.get<string>('KEYCLOAK_BASE_URL')}/realms/${this.configService.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/logout`;
+
+      const params = new URLSearchParams({
+        client_id: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
+        client_secret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+        refresh_token: logoutUserDto.refresh_token,
+      });
+
+      const response = await fetch(logoutUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to logout');
+      }
+
+      return { message: 'Logout successful' };
+    } catch (error) {
+      console.error('Failed to logout:', error);
+      throw new Error('Failed to logout');
+    } 
   }
 }

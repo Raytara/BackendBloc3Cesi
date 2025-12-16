@@ -3,6 +3,7 @@ import { AppService } from './app.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { LogoutUserDto } from './dto/logout-user.dto';
 
 @Controller()
 export class AppController {
@@ -22,5 +23,10 @@ export class AppController {
   @MessagePattern('login_user')
   async loginUser(@Payload() data: LoginUserDto) {
     return await this.appService.login(data);
+  }
+
+  @MessagePattern('logout_user')
+  async logoutUser(@Payload() data: LogoutUserDto) {
+    return await this.appService.logout(data);
   }
 }
