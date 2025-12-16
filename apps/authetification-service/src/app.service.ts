@@ -2,12 +2,14 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
+import { PrismaService } from './prisma/prismaService'; 
 
 @Injectable()
 export class AppService implements OnModuleInit {
   private kcAdminClient: KcAdminClient;
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService, private prismaService: PrismaService) {
+    
     this.kcAdminClient = new KcAdminClient({
       baseUrl: this.configService.get<string>('KEYCLOAK_BASE_URL')!,
       realmName: this.configService.get<string>('KEYCLOAK_REALM')!,
@@ -61,11 +63,22 @@ export class AppService implements OnModuleInit {
         }],
       });
 
-      console.log('✅ User created:', user);
-      await this.assignRoleToUser(user.id, 'Acheteur');
+      await this.assignRoleToUser(user.id, 'Acheteur'); 
+
+      await this.prismaService.client.user.create({
+        data: {
+          keycloakId: user.id!,
+          username: createUserDto.username,
+          email: createUserDto.email,
+          firstName: createUserDto.firstName,
+          lastName: createUserDto.lastName,
+          password: '',
+        },
+      });
+
       return user;
     } catch (error) {
-      console.error('❌ Failed to create user:', error);
+      console.error('Failed to create user:', error);
       throw error;
     }
   }
@@ -78,7 +91,7 @@ export class AppService implements OnModuleInit {
       });
 
       if (!role) {
-        console.warn(`⚠️ Role "${roleName}" not found in Keycloak`);
+        console.warn(`Role "${roleName}" not found in Keycloak`);
         return;
       }
 
@@ -91,10 +104,8 @@ export class AppService implements OnModuleInit {
         }],
       });
 
-      console.log(`✅ Role "${roleName}" assigned to user ${userId}`);
-
     } catch (error) {
-      console.error(`❌ Failed to assign role "${roleName}":`, error);
+      console.error(`Failed to assign role "${roleName}":`, error);
       throw error;
     }
   }
