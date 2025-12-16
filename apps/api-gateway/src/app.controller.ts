@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { CreateUserDto } from './dto/create-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Controller('users')
 export class AppController {
@@ -22,5 +23,11 @@ export class AppController {
   @Public()
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersClient.send('create_user', createUserDto);
+  }
+
+  @Post('login')
+  @Public()
+  loginUser(@Body() loginUserDto: LoginUserDto): Observable<{ accessToken: string }> {
+    return this.usersClient.send<{ accessToken: string }>('login_user', loginUserDto);
   }
 }

@@ -3,6 +3,7 @@ import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from './prisma/prismaService'; 
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -107,6 +108,63 @@ export class AppService implements OnModuleInit {
     } catch (error) {
       console.error(`Failed to assign role "${roleName}":`, error);
       throw error;
+    }
+  }
+
+  async login (loginUserDto: LoginUserDto) {
+    try {
+      // Utiliser fetch pour obtenir les tokens
+      const tokenUrl = `${this.configService.get<string>('KEYCLOAK_BASE_URL')}/realms/${this.configService.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/token`;
+      
+      const params = new URLSearchParams({
+        grant_type: 'password',
+        client_id: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
+        client_secret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+        username: loginUserDto.email,
+        password: loginUserDto.password,
+      });
+
+      const response = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const tokenResponse = await response.json();
+
+      const userInfo = await this.kcAdminClient.users.find({
+        realm: this.configService.get<string>('KEYCLOAK_REALM')!,
+        email: loginUserDto.email,
+        exact: true,
+      });
+
+      if (!userInfo || userInfo.length === 0) {
+        throw new Error('User not found');
+      }
+
+      const user = userInfo[0];
+
+      return {
+        access_token: tokenResponse.access_token,
+        refresh_token: tokenResponse.refresh_token,
+        expires_in: tokenResponse.expires_in,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      };
+    } catch (error) {
+      console.error('Failed to login:', error);
+      throw new Error('Invalid credentials');
     }
   }
 }
