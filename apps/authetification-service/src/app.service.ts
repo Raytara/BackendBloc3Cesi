@@ -114,6 +114,16 @@ export class AppService implements OnModuleInit {
 
   async login (loginUserDto: LoginUserDto) {
     try {
+      const user = await this.prismaService.client.user.findUnique({
+        where: { email: loginUserDto.email },
+      });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      if (user.isBanned) {
+        throw new Error('User is banned');
+      }
+
       // Utiliser fetch pour obtenir les tokens
       const tokenUrl = `${this.configService.get<string>('KEYCLOAK_BASE_URL')}/realms/${this.configService.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/token`;
       
@@ -149,19 +159,9 @@ export class AppService implements OnModuleInit {
         throw new Error('User not found');
       }
 
-      const user = userInfo[0];
-
       return {
         access_token: tokenResponse.access_token,
         refresh_token: tokenResponse.refresh_token,
-        expires_in: tokenResponse.expires_in,
-        user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
       };
     } catch (error) {
       console.error('Failed to login:', error);
