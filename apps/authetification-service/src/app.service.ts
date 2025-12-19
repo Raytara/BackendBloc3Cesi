@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from './prisma/prismaService'; 
 import { LoginUserDto } from './dto/login-user.dto';
 import { LogoutUserDto } from './dto/logout-user.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -196,5 +197,40 @@ export class AppService implements OnModuleInit {
       console.error('Failed to logout:', error);
       throw new Error('Failed to logout');
     } 
+  }
+
+  async refreshToken(refreshTokenDto: RefreshTokenDto) {
+    try {
+      const tokenUrl = `${this.configService.get<string>('KEYCLOAK_BASE_URL')}/realms/${this.configService.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/token`;
+      
+      const params = new URLSearchParams({
+        grant_type: 'refresh_token',
+        client_id: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
+        client_secret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+        refresh_token: refreshTokenDto.refresh_token,
+      });
+
+      const response = await fetch(tokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid refresh token');
+      }
+
+      const tokenResponse = await response.json();
+
+      return {
+        access_token: tokenResponse.access_token,
+        refresh_token: tokenResponse.refresh_token,
+      };
+    } catch (error) {
+      console.error('Failed to refresh token:', error);
+      throw new Error('Invalid refresh token');
+    }
   }
 }

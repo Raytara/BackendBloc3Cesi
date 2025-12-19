@@ -5,6 +5,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import type { Response } from 'express';
 import { map } from 'rxjs/operators';
 
@@ -57,5 +58,29 @@ export class AppController {
     res.clearCookie('refresh_token');
     
     return this.usersClient.send<{ message: string }>('logout_user', { refresh_token });
+  }
+
+  @Post('refresh')
+  @Public()
+  refreshToken(@Body() refreshTokenDto: RefreshTokenDto, @Res({ passthrough: true }) res: Response) {
+    return this.usersClient.send<{ access_token: string; refresh_token: string }>('refresh_token', refreshTokenDto).pipe(
+      map((tokens) => {
+        res.cookie('access_token', tokens.access_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 3600 * 1000, // 1 heure
+        });
+
+        res.cookie('refresh_token', tokens.refresh_token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 7 * 24 * 3600 * 1000, // 7 jours
+        });
+
+        return tokens;
+      })
+    );
   }
 }
