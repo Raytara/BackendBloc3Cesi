@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -13,10 +13,14 @@ enum Role {
 }
 
 model User {
- id       String      @id @default(cuid())
- name     String?
- email    String?     @unique
- role     Role        @default(ACHETEUR)
- hashedPassword     String?
- isBanned     Boolean     @default(false)
+  id       String   @id @default(uuid())
+  keycloakId    String   @unique @map("keycloak_id")
+  username     String   @unique
+  firstName    String?  @map("first_name")
+  lastName     String?  @map("last_name")
+  email     String   @unique
+  role      Role     @default(ACHETEUR)
+  isBanned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
