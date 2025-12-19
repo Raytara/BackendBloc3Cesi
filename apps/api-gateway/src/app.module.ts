@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect';
 import { APP_GUARD, Reflector } from '@nestjs/core';
+import { ArticleController } from './article.controller';
 
 @Module({
   imports: [
@@ -28,9 +29,17 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
           port: 3001,
         },
       },
+      {
+        name: 'ARTICLE_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: '127.0.0.1',
+          port: 3002,
+        },
+      }
     ]),
   ],
-  controllers: [AppController],
+  controllers: [AppController, ArticleController],
   providers: [
     AppService,
     Reflector,
