@@ -18,6 +18,14 @@ export class ArticleController {
       return this.articlesClient.send<string>(pattern, payload);
     }
 
+    @Get('all')
+    @Public()
+    getAllArticles(): Observable<any[]> {
+      const pattern = 'get_all_articles'; 
+      const payload = {};
+      return this.articlesClient.send<any[]>(pattern, payload);
+    }
+
     @Post('create')
     @Public()
     createArticle(@Body() createArticleDto: CreateArticleDto, @Req() req: any) {

@@ -13,6 +13,11 @@ export class AppController {
     return "Hello world from Article Microservice";
   }
 
+  @MessagePattern('get_all_articles')
+  getAllArticles() {
+    return this.appService.getAllArticles();
+  }
+
   @MessagePattern('post_article')
   postArticle(@Body() createArticleDto: CreateArticleDto) {
     return this.appService.createArticle(createArticleDto);

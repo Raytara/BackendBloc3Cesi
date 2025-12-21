@@ -22,6 +22,12 @@ export class AppService {
     return 'Hello World!';
   }
 
+  async getAllArticles() {
+    return prisma.article.findMany({
+      where: { status: Status.APPROUVE },
+    });
+  }
+
   private containsBannedWords(text: string): boolean {
     if (!text) return false;
     
