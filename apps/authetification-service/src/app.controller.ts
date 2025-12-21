@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LogoutUserDto } from './dto/logout-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { BecomeSellerDto } from './dto/become-seller.dto';
 
 @Controller()
 export class AppController {
@@ -24,6 +25,11 @@ export class AppController {
   @MessagePattern('login_user')
   async loginUser(@Payload() data: LoginUserDto) {
     return await this.appService.login(data);
+  }
+
+  @MessagePattern('become_seller')
+  async becomeSeller(@Payload() data: BecomeSellerDto) {
+    return await this.appService.becomeSeller(data);
   }
 
   @MessagePattern('logout_user')
