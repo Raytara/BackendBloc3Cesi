@@ -1,15 +1,43 @@
 import { Injectable } from '@nestjs/common';
 import { prisma } from '../lib/prisma';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { Status } from '@prisma/client';
 
 @Injectable()
 export class AppService {
+  private readonly bannedWords = [
+    'arnaque',
+    'scam',
+    'fake',
+    'contrefaçon',
+    'volé',
+    'drogue',
+    'arme',
+    'illégal',
+    'terrorisme',
+    'spam',
+  ];
+
   getHello(): string {
     return 'Hello World!';
   }
 
+  private containsBannedWords(text: string): boolean {
+    if (!text) return false;
+    
+    const lowerText = text.toLowerCase();
+    return this.bannedWords.some(word => lowerText.includes(word.toLowerCase()));
+  }
+
   async createArticle(createArticleDto: CreateArticleDto) {
-    console.log('Article data received in Article Service:', createArticleDto);
+    const hasBannedWords = 
+      this.containsBannedWords(createArticleDto.title) || 
+      this.containsBannedWords(createArticleDto.description || '');
+    
+    const status = hasBannedWords ? Status.EN_ATTENTE : Status.APPROUVE;
+    
+    console.log('Banned words detected:', hasBannedWords);
+    console.log('Status will be:', status);
     
     const article = await prisma.article.create({
       data: {
@@ -19,9 +47,18 @@ export class AppService {
         description: createArticleDto.description,
         price: createArticleDto.price,
         stock: createArticleDto.stock || 0,
+        status: status,
       },
     });
 
-    return { message: 'Article created successfully', article };
+    const message = hasBannedWords 
+      ? 'Article created successfully - En attente de modération (mots suspects détectés)'
+      : 'Article created successfully - Approuvé automatiquement';
+
+    return { 
+      message, 
+      article,
+      autoApproved: !hasBannedWords 
+    };
   }
 }
