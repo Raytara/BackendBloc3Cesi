@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path';
-import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect';
+import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard, TokenValidation } from 'nest-keycloak-connect';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { ArticleController } from './article.controller';
 
@@ -17,6 +17,7 @@ import { ArticleController } from './article.controller';
         realm: configService.getOrThrow<string>('KEYCLOAK_REALM'),
         clientId: configService.getOrThrow<string>('KEYCLOAK_CLIENT_ID'),
         secret: configService.getOrThrow<string>('KEYCLOAK_SECRET'),
+        tokenValidation: TokenValidation.ONLINE,
       }),
       inject: [ConfigService],
     }),
