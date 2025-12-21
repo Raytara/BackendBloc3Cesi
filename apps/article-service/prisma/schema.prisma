@@ -6,6 +6,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Status {
+  EN_ATTENTE
+  APPROUVE
+  VENDU
+  REJETE  
+}
+
 model Boutique {
   id      String  @id @default(uuid())
   sellerId String  @map("seller_id")
@@ -16,11 +23,13 @@ model Boutique {
 
 model Article {
   id          String   @id @default(uuid())
-  boutiqueId  String   @map("boutique_id")
+  boutiqueId  String?   @map("boutique_id")
+  sellerId    String   @map("seller_id")
+  status      Status   @default(EN_ATTENTE)
   title       String
   description String?
   price       Float
-  stock       Int
+  stock       Int?
   createdAt   DateTime @default(now()) @map("created_at")
 }
 

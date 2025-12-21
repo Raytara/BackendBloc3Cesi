@@ -1,8 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Body,  Get, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessagePattern } from '@nestjs/microservices';
+import { CreateArticleDto } from './dto/create-article.dto';
 
-@Controller()
+@Controller('articles')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -10,5 +11,10 @@ export class AppController {
   getHello(): string {
     console.log("[ArticleService] Message hello reçu");
     return "Hello world from Article Microservice";
+  }
+
+  @MessagePattern('post_article')
+  postArticle(@Body() createArticleDto: CreateArticleDto) {
+    return this.appService.createArticle(createArticleDto);
   }
 }
