@@ -7,6 +7,7 @@ import * as path from 'path';
 import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard, TokenValidation } from 'nest-keycloak-connect';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { ArticleController } from './article.controller';
+import { CustomRoleGuard } from './roles.guard';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ArticleController } from './article.controller';
         clientId: configService.getOrThrow<string>('KEYCLOAK_CLIENT_ID'),
         secret: configService.getOrThrow<string>('KEYCLOAK_SECRET'),
         tokenValidation: TokenValidation.ONLINE,
+        roleSource: 'ressource',
       }),
       inject: [ConfigService],
     }),
@@ -54,7 +56,7 @@ import { ArticleController } from './article.controller';
     },
     {
       provide: APP_GUARD,
-      useClass: RoleGuard,
+      useClass: CustomRoleGuard,
     },
   ],
 })

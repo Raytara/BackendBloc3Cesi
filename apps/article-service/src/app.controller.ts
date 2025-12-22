@@ -1,4 +1,4 @@
-import { Controller, Body,  Get, UseGuards } from '@nestjs/common';
+import { Controller, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { CreateArticleDto } from './dto/create-article.dto';

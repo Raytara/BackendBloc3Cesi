@@ -30,7 +30,6 @@ export class AppService {
   }
 
   async getArticleByCategorie(categoryId: string) {
-    const allArticles = await prisma.article.findMany();
     const filtered = await prisma.article.findMany({
       where: { 
         categoryId: categoryId.trim(),
@@ -40,7 +39,7 @@ export class AppService {
     return filtered;  
   }
 
-  async createMagasin(createMagasinDto: any) {
+  async createMagasin(createMagasinDto: CreateMagasinDto) {
     const magasin = await prisma.boutique.create({
       data: {
         sellerId: createMagasinDto.sellerId,
@@ -64,10 +63,7 @@ export class AppService {
       this.containsBannedWords(createArticleDto.description || '');
     
     const status = hasBannedWords ? Status.EN_ATTENTE : Status.APPROUVE;
-    
-    console.log('Banned words detected:', hasBannedWords);
-    console.log('Status will be:', status);
-    
+
     const article = await prisma.article.create({
       data: {
         boutiqueId: createArticleDto.boutiqueId || null,
