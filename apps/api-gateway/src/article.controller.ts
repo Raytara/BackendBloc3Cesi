@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Inject, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Inject, UseGuards, Req, Param } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { Public, Roles } from 'nest-keycloak-connect';
@@ -24,6 +24,14 @@ export class ArticleController {
       const pattern = 'get_all_articles'; 
       const payload = {};
       return this.articlesClient.send<any[]>(pattern, payload);
+    }
+
+    @Get('category/:categoryId')
+    @Public()
+    getArticlesByCategory(@Param('categoryId') categoryId: string): Observable<any[]> {
+      const pattern = 'get_articles_by_category'; 
+      const payload = { categoryId };
+      return this.articlesClient.send<any[]>(pattern, categoryId);
     }
 
     @Post('create')

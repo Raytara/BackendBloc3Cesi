@@ -18,6 +18,11 @@ export class AppController {
     return this.appService.getAllArticles();
   }
 
+  @MessagePattern('get_articles_by_category')
+  getArticleByCategorie(@Body() categoryId: string) {
+    return this.appService.getArticleByCategorie(categoryId);
+  }
+
   @MessagePattern('post_article')
   postArticle(@Body() createArticleDto: CreateArticleDto) {
     return this.appService.createArticle(createArticleDto);

@@ -28,6 +28,17 @@ export class AppService {
     });
   }
 
+  async getArticleByCategorie(categoryId: string) {
+    const allArticles = await prisma.article.findMany();
+    const filtered = await prisma.article.findMany({
+      where: { 
+        categoryId: categoryId.trim(),
+        status: Status.APPROUVE 
+      },
+    });
+    return filtered;  
+  }
+
   private containsBannedWords(text: string): boolean {
     if (!text) return false;
     
