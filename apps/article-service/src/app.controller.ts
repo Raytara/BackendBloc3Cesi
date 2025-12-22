@@ -1,6 +1,6 @@
 import { Controller, Body } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { CreateMagasinDto } from './dto/create-magasin.dto';
 
@@ -20,17 +20,17 @@ export class AppController {
   }
 
   @MessagePattern('get_articles_by_category')
-  getArticleByCategorie(@Body() categoryId: string) {
+  getArticleByCategorie(@Payload() categoryId: string) {
     return this.appService.getArticleByCategorie(categoryId);
   }
 
   @MessagePattern('post_magasin')
-  postMagasin(@Body() createMagasinDto: CreateMagasinDto) {
+  postMagasin(@Payload() createMagasinDto: CreateMagasinDto) {
     return this.appService.createMagasin(createMagasinDto);
   }
 
   @MessagePattern('post_article')
-  postArticle(@Body() createArticleDto: CreateArticleDto) {
+  postArticle(@Payload() createArticleDto: CreateArticleDto) {
     return this.appService.createArticle(createArticleDto);
   }
 }
