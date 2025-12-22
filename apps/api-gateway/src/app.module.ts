@@ -4,8 +4,10 @@ import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'path';
-import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard } from 'nest-keycloak-connect';
+import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard, TokenValidation } from 'nest-keycloak-connect';
 import { APP_GUARD, Reflector } from '@nestjs/core';
+import { ArticleController } from './article.controller';
+import { CustomRoleGuard } from './roles.guard';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
         realm: configService.getOrThrow<string>('KEYCLOAK_REALM'),
         clientId: configService.getOrThrow<string>('KEYCLOAK_CLIENT_ID'),
         secret: configService.getOrThrow<string>('KEYCLOAK_SECRET'),
+        tokenValidation: TokenValidation.ONLINE,
+        roleSource: 'ressource',
       }),
       inject: [ConfigService],
     }),
@@ -28,9 +32,17 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
           port: 3001,
         },
       },
+      {
+        name: 'ARTICLE_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: '127.0.0.1',
+          port: 3002,
+        },
+      }
     ]),
   ],
-  controllers: [AppController],
+  controllers: [AppController, ArticleController],
   providers: [
     AppService,
     Reflector,
@@ -44,7 +56,7 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
     },
     {
       provide: APP_GUARD,
-      useClass: RoleGuard,
+      useClass: CustomRoleGuard,
     },
   ],
 })

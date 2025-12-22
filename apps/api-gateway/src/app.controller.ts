@@ -1,4 +1,4 @@
-import { Body, Post, Controller, Get, HttpCode, HttpStatus, Inject, Res } from '@nestjs/common';
+import { Body, Post, Controller, Get, HttpCode, HttpStatus, Inject, Res, Req, Headers } from '@nestjs/common';
 import { Public } from 'nest-keycloak-connect';
 import { AppService } from './app.service';
 import { ClientProxy } from '@nestjs/microservices';
@@ -27,6 +27,16 @@ export class AppController {
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersClient.send('create_user', createUserDto);
   }
+
+  @Post('become-seller')
+  becomeSeller(@Headers('authorization') authorization: string) {
+    if (!authorization || !authorization.startsWith('Bearer ')) {
+      throw new Error('Missing or invalid Authorization header');
+    }
+    
+    const jwt = authorization.substring(7); // Remove "Bearer " prefix
+    return this.usersClient.send('become_seller', { jwt });
+  } 
 
   @Post('login')
   @Public()

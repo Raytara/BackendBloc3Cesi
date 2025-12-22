@@ -6,6 +6,7 @@ import { PrismaService } from './prisma/prismaService';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LogoutUserDto } from './dto/logout-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { BecomeSellerDto } from './dto/become-seller.dto';
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -168,6 +169,45 @@ export class AppService implements OnModuleInit {
       console.error('Failed to login:', error);
       throw new Error('Invalid credentials');
     }
+  }
+
+  async becomeSeller(becomeSellerDto: BecomeSellerDto) {
+    try {
+      // Decode JWT to extract user ID (sub claim)
+      const payload = JSON.parse(Buffer.from(becomeSellerDto.jwt.split('.')[1], 'base64').toString());
+      
+      if (!payload || !payload.sub) {
+        throw new Error('Invalid JWT token');
+      }
+
+      // Remove Acheteur role from Keycloak
+      const acheteurRole = await this.kcAdminClient.roles.findOneByName({
+        realm: this.configService.get<string>('KEYCLOAK_REALM')!,
+        name: 'Acheteur',
+      });
+
+      if (acheteurRole) {
+        await this.kcAdminClient.users.delRealmRoleMappings({
+          realm: this.configService.get<string>('KEYCLOAK_REALM')!,
+          id: payload.sub,
+          roles: [{ id: acheteurRole.id!, name: acheteurRole.name! }],
+        });
+      }
+
+      // Add Vendeur role to Keycloak
+      await this.assignRoleToUser(payload.sub, 'Vendeur');
+
+      // Update role in Prisma database
+      await this.prismaService.client.user.update({
+        where: { keycloakId: payload.sub },
+        data: { role: 'VENDEUR' },
+      });
+
+      return { message: 'User promoted to seller successfully' };
+    } catch (error) {
+      console.error('Failed to promote user to seller:', error);
+      throw new Error('Failed to promote user to seller');
+    } 
   }
 
   async logout(logoutUserDto: LogoutUserDto) {
