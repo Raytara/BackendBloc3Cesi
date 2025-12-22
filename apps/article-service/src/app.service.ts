@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { prisma } from '../lib/prisma';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { CreateMagasinDto } from './dto/create-magasin.dto';
 import { Status } from '@prisma/client';
 
 @Injectable()
@@ -37,6 +38,17 @@ export class AppService {
       },
     });
     return filtered;  
+  }
+
+  async createMagasin(createMagasinDto: any) {
+    const magasin = await prisma.boutique.create({
+      data: {
+        sellerId: createMagasinDto.sellerId,
+        name: createMagasinDto.name,
+        description: createMagasinDto.description,
+      },
+    });
+    return { message: 'Magasin created successfully', magasin };
   }
 
   private containsBannedWords(text: string): boolean {

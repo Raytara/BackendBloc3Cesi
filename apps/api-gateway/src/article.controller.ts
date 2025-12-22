@@ -3,7 +3,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { Public, Roles } from 'nest-keycloak-connect';
 import { CreateArticleDto } from './dto/create-article.dto';
-
+import { CreateMagasinDto } from './dto/create-magasin.dto';
 
 @Controller('articles')
 export class ArticleController {
@@ -32,6 +32,13 @@ export class ArticleController {
       const pattern = 'get_articles_by_category'; 
       const payload = { categoryId };
       return this.articlesClient.send<any[]>(pattern, categoryId);
+    }
+
+    @Post('createMagasin')
+    @Public()
+    createMagasin(@Body() createMagasinDto: CreateMagasinDto, @Req() req: any) {
+        const userId = req.user.sub;
+        return this.articlesClient.send('post_magasin',  { ...createMagasinDto, sellerId: userId });
     }
 
     @Post('create')
