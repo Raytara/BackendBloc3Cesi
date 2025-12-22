@@ -1,8 +1,10 @@
 export class CreateArticleDto {
-  title: string; 
-  description: string;
-  price: number;
-  boutiqueId?: string;
-  stock?: number;
+  title: string;
   authorId: string;
+  description?: string;
+  price: number;
+  stock?: number;
+  boutiqueId?: string;
+  categoryId: string;
+  sellerId: string;
 }

@@ -14,29 +14,37 @@ enum Status {
 }
 
 model Boutique {
-  id      String  @id @default(uuid())
-  sellerId String  @map("seller_id")
-  name    String
+  id        String     @id @default(uuid())
+  sellerId  String     @map("seller_id")
+  name      String
   description String?
-  createdAt DateTime @default(now()) @map("created_at")
+  articles  Article[]
+  createdAt DateTime   @default(now()) @map("created_at")
 }
 
 model Article {
-  id          String   @id @default(uuid())
-  boutiqueId  String?   @map("boutique_id")
-  sellerId    String   @map("seller_id")
-  status      Status   @default(EN_ATTENTE)
-  title       String
+  id         String    @id @default(uuid())
+  boutiqueId String?   @map("boutique_id")
+  boutique   Boutique? @relation(fields: [boutiqueId], references: [id])
+
+  sellerId   String    @map("seller_id")
+  status     Status    @default(EN_ATTENTE)
+  title      String
   description String?
-  price       Float
-  stock       Int?
-  createdAt   DateTime @default(now()) @map("created_at")
+  price      Float
+  stock      Int?
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt  DateTime  @default(now()) @map("created_at")
 }
 
+
 model Category {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
+  id        String    @id @default(uuid())
+  name      String    @unique
+  articles  Article[]
+  createdAt DateTime  @default(now()) @map("created_at")
 }
 
 model PriceHistory {

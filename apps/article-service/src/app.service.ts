@@ -53,6 +53,7 @@ export class AppService {
         description: createArticleDto.description,
         price: createArticleDto.price,
         stock: createArticleDto.stock || 0,
+        categoryId: createArticleDto.categoryId || null,
         status: status,
       },
     });
