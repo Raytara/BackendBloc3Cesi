@@ -8,6 +8,7 @@ import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard, TokenValida
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { ArticleController } from './article.controller';
 import { CustomRoleGuard } from './roles.guard';
+import { CommandeController } from './commande.controller';
 
 @Module({
   imports: [
@@ -39,10 +40,18 @@ import { CustomRoleGuard } from './roles.guard';
           host: '127.0.0.1',
           port: 3002,
         },
-      }
+      }, 
+      {
+        name: 'COMMANDE_SERVICE',
+        transport: Transport.TCP,
+        options: {
+          host: '127.0.0.1',
+          port: 3003,
+        },
+      },
     ]),
   ],
-  controllers: [AppController, ArticleController],
+  controllers: [AppController, ArticleController, CommandeController],
   providers: [
     AppService,
     Reflector,
