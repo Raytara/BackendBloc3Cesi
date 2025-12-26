@@ -69,8 +69,6 @@ export class AppService {
         status: 'PAID',
       }
     });
-    
-    console.log('2. [Commande Service] Commande sauvegardée en BDD:', newOrder);
 
     // B. Communication vers Article Service
     if (productId) {
@@ -79,12 +77,9 @@ export class AppService {
         productId: productId,
         quantity: 1
       });
-      console.log('3. [Commande Service] Événement "order_confirmed" envoyé à Article Service');
     } else {
-      console.warn('3. [Commande Service] Pas de productId dans les métadonnées, événement non envoyé.');
     }
     // On utilise .emit() car on ne s'attend pas à une réponse immédiate (Fire and Forget)
     this.articleClient.emit('order_confirmed', newOrder);
-    console.log('3. [Commande Service] Événement "order_confirmed" envoyé à Article Service');
   }
 }

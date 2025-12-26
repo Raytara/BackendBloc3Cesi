@@ -35,10 +35,7 @@ export class AppController {
   }
 
   @EventPattern('order_confirmed')
-  async handleOrderConfirmed(@Payload() order: any) {
-    console.log('4. [Article Service] Commande confirmée reçue !');
-    console.log('   -> Mise à jour des stocks pour la commande ID:', order.orderId);
-    
+  async handleOrderConfirmed(@Payload() order: any) {   
     if (order.productId && order.quantity) {
       await this.appService.updateStock(order.productId, order.quantity);
     }

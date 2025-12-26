@@ -18,7 +18,6 @@ export class CommandeController {
   }
 
   @Post('create-payment-session')
-  @Public()
   createPaymentSession(@Body() createPaymentSessionDto: CreatePaymentSessionDto): Observable<string> {
     return this.commandeClient.send<string>('create_payment_session', createPaymentSessionDto);
   }
