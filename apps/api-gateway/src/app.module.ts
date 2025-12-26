@@ -9,6 +9,8 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
 import { ArticleController } from './article.controller';
 import { CustomRoleGuard } from './roles.guard';
 import { CommandeController } from './commande.controller';
+import { WebhookController } from './webhook.controller';
+import { PaymentCallbackController } from './payment-callback.controller';
 
 @Module({
   imports: [
@@ -51,7 +53,7 @@ import { CommandeController } from './commande.controller';
       },
     ]),
   ],
-  controllers: [AppController, ArticleController, CommandeController],
+  controllers: [AppController, ArticleController, CommandeController, WebhookController, PaymentCallbackController],
   providers: [
     AppService,
     Reflector,

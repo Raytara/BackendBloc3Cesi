@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, EventPattern, Payload } from '@nestjs/microservices';
 import { CreatePaymentSessionDto } from './dto/create-payment-session.dto';
 
 @Controller('commande')
@@ -20,5 +20,11 @@ export class AppController {
   @MessagePattern('create_payment_session')
   async createPaymentSession(@Payload() createPaymentSessionDto: CreatePaymentSessionDto): Promise<string> {
     return this.appService.createPaymentSession(createPaymentSessionDto);
+  }
+
+  @EventPattern('payment_succeeded')
+  handlePaymentSucceeded(@Payload() data: any) {
+    console.log('Payment succeeded:', data);
+    // TODO: Update order status, etc.
   }
 }
