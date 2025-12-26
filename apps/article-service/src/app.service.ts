@@ -55,11 +55,18 @@ export class AppService {
       const article = await prisma.article.findUnique({ where: { id: productId } });
       if (article && article.stock !== null) {
         const newStock = article.stock - quantity;
+        const finalStock = newStock >= 0 ? newStock : 0;
+
+        const updateData: { stock: number; status?: Status } = { stock: finalStock };
+        if (finalStock === 0) {
+          updateData.status = Status.VENDU;
+        }
+
         await prisma.article.update({
           where: { id: productId },
-          data: { stock: newStock >= 0 ? newStock : 0, status: "VENDU" },
+          data: updateData,
         });
-        console.log(`Stock updated for article ${productId}. New stock: ${newStock}`);
+        console.log(`Stock updated for article ${productId}. New stock: ${finalStock}`);
       } else {
         console.warn(`Article ${productId} not found or stock is null.`);
       }
