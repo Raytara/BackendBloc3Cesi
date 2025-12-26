@@ -29,26 +29,35 @@ import { PaymentCallbackController } from './payment-callback.controller';
     ClientsModule.register([
       {
         name: 'USER_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.RMQ,
         options: {
-          host: '127.0.0.1',
-          port: 3001,
+          urls: ['amqp://localhost:5672'],
+          queue: 'auth_queue',
+          queueOptions: {
+            durable: false
+          },
         },
       },
       {
         name: 'ARTICLE_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.RMQ,
         options: {
-          host: '127.0.0.1',
-          port: 3002,
+          urls: ['amqp://localhost:5672'],
+          queue: 'article_queue',
+          queueOptions: {
+            durable: false
+          },
         },
       }, 
       {
         name: 'COMMANDE_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.RMQ,
         options: {
-          host: '127.0.0.1',
-          port: 3003,
+          urls: ['amqp://localhost:5672'],
+          queue: 'commande_queue',
+          queueOptions: {
+            durable: false
+          },
         },
       },
     ]),

@@ -23,8 +23,7 @@ export class AppController {
   }
 
   @EventPattern('payment_succeeded')
-  handlePaymentSucceeded(@Payload() data: any) {
-    console.log('Payment succeeded:', data);
-    // TODO: Update order status, etc.
+  async handlePaymentSucceeded(@Payload() data: any) {
+    return this.appService.handlePaymentSuccess(data);
   }
 }
