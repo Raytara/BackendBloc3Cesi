@@ -1,7 +1,8 @@
-import { Controller, Get, Inject } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Post } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 import { Public } from "nest-keycloak-connect";
+import { CreatePaymentSessionDto } from "./dto/create-payment-session.dto";
 
 @Controller("commande")
 export class CommandeController {
@@ -14,5 +15,11 @@ export class CommandeController {
     const payload = {};
     
     return this.commandeClient.send<string>(pattern, payload);
+  }
+
+  @Post('create-payment-session')
+  @Public()
+  createPaymentSession(@Body() createPaymentSessionDto: CreatePaymentSessionDto): Observable<string> {
+    return this.commandeClient.send<string>('create_payment_session', createPaymentSessionDto);
   }
 }
