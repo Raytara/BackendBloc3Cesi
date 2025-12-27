@@ -1,5 +1,5 @@
 {
-  "name": "microservices-project",
+  "name": "social-service",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -15,21 +15,14 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start:all": "concurrently \"npm run start:dev --prefix apps/api-gateway\" \"npm run start:dev --prefix apps/article-service\" \"npm run start:dev --prefix apps/authetification-service\" \"npm run start:dev --prefix apps/commande-service\" \"npm run start:dev --prefix apps/social-service\"",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/microservices": "^11.1.9",
     "@nestjs/platform-express": "^11.0.1",
-    "amqp-connection-manager": "^5.0.0",
-    "amqplib": "^0.10.9",
-    "keycloak-connect": "^26.1.1",
-    "nest-keycloak-connect": "^2.0.0-alpha.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -43,7 +36,6 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
-    "concurrently": "^9.2.1",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
