@@ -8,6 +8,9 @@ import { KeycloakConnectModule, ResourceGuard, RoleGuard, AuthGuard, TokenValida
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { ArticleController } from './article.controller';
 import { CustomRoleGuard } from './roles.guard';
+import { CommandeController } from './commande.controller';
+import { WebhookController } from './webhook.controller';
+import { PaymentCallbackController } from './payment-callback.controller';
 
 @Module({
   imports: [
@@ -26,23 +29,40 @@ import { CustomRoleGuard } from './roles.guard';
     ClientsModule.register([
       {
         name: 'USER_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.RMQ,
         options: {
-          host: '127.0.0.1',
-          port: 3001,
+          urls: ['amqp://localhost:5672'],
+          queue: 'auth_queue',
+          queueOptions: {
+            durable: false
+          },
         },
       },
       {
         name: 'ARTICLE_SERVICE',
-        transport: Transport.TCP,
+        transport: Transport.RMQ,
         options: {
-          host: '127.0.0.1',
-          port: 3002,
+          urls: ['amqp://localhost:5672'],
+          queue: 'article_queue',
+          queueOptions: {
+            durable: false
+          },
         },
-      }
+      }, 
+      {
+        name: 'COMMANDE_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'commande_queue',
+          queueOptions: {
+            durable: false
+          },
+        },
+      },
     ]),
   ],
-  controllers: [AppController, ArticleController],
+  controllers: [AppController, ArticleController, CommandeController, WebhookController, PaymentCallbackController],
   providers: [
     AppService,
     Reflector,

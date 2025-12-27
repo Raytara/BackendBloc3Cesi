@@ -1,6 +1,6 @@
 import { Controller, Body } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, EventPattern, Payload } from '@nestjs/microservices';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { CreateMagasinDto } from './dto/create-magasin.dto';
 
@@ -32,5 +32,12 @@ export class AppController {
   @MessagePattern('post_article')
   postArticle(@Payload() createArticleDto: CreateArticleDto) {
     return this.appService.createArticle(createArticleDto);
+  }
+
+  @EventPattern('order_confirmed')
+  async handleOrderConfirmed(@Payload() order: any) {   
+    if (order.productId && order.quantity) {
+      await this.appService.updateStock(order.productId, order.quantity);
+    }
   }
 }

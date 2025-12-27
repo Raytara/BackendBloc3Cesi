@@ -50,6 +50,31 @@ export class AppService {
     return { message: 'Magasin created successfully', magasin };
   }
 
+  async updateStock(productId: string, quantity: number) {
+    try {
+      const article = await prisma.article.findUnique({ where: { id: productId } });
+      if (article && article.stock !== null) {
+        const newStock = article.stock - quantity;
+        const finalStock = newStock >= 0 ? newStock : 0;
+
+        const updateData: { stock: number; status?: Status } = { stock: finalStock };
+        if (finalStock === 0) {
+          updateData.status = Status.VENDU;
+        }
+
+        await prisma.article.update({
+          where: { id: productId },
+          data: updateData,
+        });
+        console.log(`Stock updated for article ${productId}. New stock: ${finalStock}`);
+      } else {
+        console.warn(`Article ${productId} not found or stock is null.`);
+      }
+    } catch (error) {
+      console.error(`Error updating stock for article ${productId}:`, error);
+    }
+  }
+
   private containsBannedWords(text: string): boolean {
     if (!text) return false;
     

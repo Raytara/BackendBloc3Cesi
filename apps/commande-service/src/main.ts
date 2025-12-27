@@ -7,13 +7,13 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: ['amqp://localhost:5672'],
-      queue: 'auth_queue',
+      queue: 'commande_queue',
       queueOptions: {
         durable: false
       },
     },
   });
   await app.listen();
-  console.log('Auth Microservice is listening via RabbitMQ');
+  console.log('Commande microservice is listening via RabbitMQ');
 }
 bootstrap();
