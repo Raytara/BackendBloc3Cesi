@@ -29,12 +29,9 @@ model Review {
   id          String   @id @default(uuid())
   authorId    String   
   targetId    String   
-  orderId     String   @unique 
   rating      Int      
   comment     String?  @db.Text
-  reply       String?  @db.Text 
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 
   @@index([targetId])
 }
