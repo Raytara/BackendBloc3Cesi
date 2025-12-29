@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Inject, Req, Param } from "@nestjs/common";
+import { Controller, Get, Post, Body, Inject, Req, Param, Delete } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
 import { Public } from "nest-keycloak-connect";
 import { Observable } from "rxjs";
@@ -55,5 +55,11 @@ export class SocialController {
   getUserConversations(@Req() req: any) {
     const userId = req.user.sub;
     return this.socialClient.send('get_user_conversations', userId);
+  }
+
+  @Delete('review/:id')
+  deleteReview(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user.sub;
+    return this.socialClient.send('delete_review', { reviewId: id, userId });
   }
 }

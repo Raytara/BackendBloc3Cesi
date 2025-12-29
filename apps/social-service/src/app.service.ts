@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from './prisma/prismaService';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateConversationDto, SendMessageDto } from './dto/conversation.dto';
@@ -12,27 +12,54 @@ export class AppService {
   }
 
   async createReview(createReviewDto: CreateReviewDto) {
-    return this.prisma.client.review.create({
-      data: createReviewDto,
+    // prevent duplicate reviews by the same author for the same target
+    const existing = await this.prisma.client.review.findFirst({
+      where: {
+        authorId: createReviewDto.authorId,
+        targetId: createReviewDto.targetId,
+      },
     });
+
+    if (existing) {
+      throw new ConflictException(
+        'Review already exists for this author and target',
+      );
+    }
+
+    try {
+      return await this.prisma.client.review.create({
+        data: createReviewDto,
+      });
+    } catch (err: any) {
+      // Prisma unique constraint error code
+      if (err.code === 'P2002') {
+        throw new ConflictException(
+          'Review already exists for this author and target',
+        );
+      }
+      throw err;
+    }
   }
 
   async getReviews(targetId: string) {
-    const reviews = await this.prisma.client.review.findMany({
+    // fetch all and filter deleted client-side to avoid prisma client types mismatch
+    const all = await this.prisma.client.review.findMany({
       where: { targetId },
       orderBy: { createdAt: 'desc' },
     });
 
-    const aggregations = await this.prisma.client.review.aggregate({
-      where: { targetId },
-      _avg: { rating: true },
-      _count: { rating: true },
-    });
+    const reviews = all.filter((r) => !(r as any).deletedAt);
+
+    // compute aggregates from filtered reviews
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews
+      ? reviews.reduce((s, r) => s + (r.rating as number), 0) / totalReviews
+      : 0;
 
     return {
       reviews,
-      averageRating: aggregations._avg.rating || 0,
-      totalReviews: aggregations._count.rating || 0,
+      averageRating,
+      totalReviews,
     };
   }
 
@@ -85,5 +112,25 @@ export class AppService {
       },
       orderBy: { updatedAt: 'desc' },
     });
+  }
+
+  async deleteReview(reviewId: string, userId: string) {
+    const review = await this.prisma.client.review.findUnique({
+      where: { id: reviewId },
+    });
+    if (!review) {
+      return { success: false, message: 'Review not found' };
+    }
+
+    if (review.authorId !== userId) {
+      return { success: false, message: 'Forbidden' };
+    }
+
+    await this.prisma.client.review.update({
+      where: { id: reviewId },
+      data: { deletedAt: new Date() } as any,
+    });
+
+    return { success: true };
   }
 }

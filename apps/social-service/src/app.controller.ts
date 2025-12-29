@@ -47,4 +47,9 @@ export class AppController {
   getUserConversations(@Payload() userId: string) {
     return this.appService.getUserConversations(userId);
   }
+
+  @MessagePattern('delete_review')
+  deleteReview(@Payload() data: { reviewId: string; userId: string }) {
+    return this.appService.deleteReview(data.reviewId, data.userId);
+  }
 }

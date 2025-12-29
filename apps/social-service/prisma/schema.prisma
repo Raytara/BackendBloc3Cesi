@@ -31,7 +31,10 @@ model Review {
   targetId    String   
   rating      Int      
   comment     String?  @db.Text
+  deletedAt   DateTime?
   createdAt   DateTime @default(now())
 
   @@index([targetId])
+
+  @@unique([authorId, targetId])
 }
