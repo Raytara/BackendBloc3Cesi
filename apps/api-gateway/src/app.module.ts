@@ -11,6 +11,7 @@ import { CustomRoleGuard } from './roles.guard';
 import { CommandeController } from './commande.controller';
 import { WebhookController } from './webhook.controller';
 import { PaymentCallbackController } from './payment-callback.controller';
+import { SocialController } from './social.controller';
 
 @Module({
   imports: [
@@ -60,9 +61,20 @@ import { PaymentCallbackController } from './payment-callback.controller';
           },
         },
       },
+      {
+        name: 'SOCIAL_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'social_queue',
+          queueOptions: {
+            durable: false
+          },
+        },
+      },
     ]),
   ],
-  controllers: [AppController, ArticleController, CommandeController, WebhookController, PaymentCallbackController],
+  controllers: [AppController, ArticleController, CommandeController, WebhookController, PaymentCallbackController, SocialController],
   providers: [
     AppService,
     Reflector,
