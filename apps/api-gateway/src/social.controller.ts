@@ -3,6 +3,8 @@ import { ClientProxy } from "@nestjs/microservices";
 import { Public } from "nest-keycloak-connect";
 import { Observable } from "rxjs";
 import { CreateReviewDto } from "./dto/create-review.dto";
+import { CreateConversationDto } from "./dto/create-conversation.dto";
+import { SendMessageDto } from "./dto/send-message.dto";
 
 @Controller("social")
 export class SocialController {
@@ -27,5 +29,25 @@ export class SocialController {
   @Public()
   getReviews(@Param("targetId") targetId: string) {
     return this.socialClient.send("get_reviews", targetId);
+  }
+
+  @Post("conversation")
+  startConversation(@Body() data: CreateConversationDto) {
+    return this.socialClient.send("find_or_create_conversation", data);
+  }
+
+  @Post("message")
+  sendMessage(@Body() dto: SendMessageDto, @Req() req: any) {
+    const senderId = req.user.sub;
+    return this.socialClient.send("send_message", {
+      conversationId: dto.conversationId,
+      content: dto.content,
+      senderId: senderId,
+    });
+  }
+
+  @Get("conversation/:conversationId/messages")
+  getMessages(@Param("conversationId") conversationId: string) {
+    return this.socialClient.send("get_messages", conversationId);
   }
 }

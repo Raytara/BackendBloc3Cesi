@@ -26,4 +26,19 @@ export class AppController {
   getReviews(@Payload() targetId: string) {
     return this.appService.getReviews(targetId);
   }
+
+  @MessagePattern('find_or_create_conversation')
+  findOrCreateConversation(@Payload() data: any) {
+    return this.appService.findOrCreateConversation(data);
+  }
+
+  @MessagePattern('send_message')
+  sendMessage(@Payload() data: any) {
+    return this.appService.sendMessage(data);
+  }
+
+  @MessagePattern('get_messages')
+  getMessages(@Payload() conversationId: string) {
+    return this.appService.getMessages(conversationId);
+  }
 }

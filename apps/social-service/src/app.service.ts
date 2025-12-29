@@ -34,4 +34,40 @@ export class AppService {
       totalReviews: aggregations._count.rating || 0,
     };
   }
+
+  async findOrCreateConversation(data: { orderId: string; buyerId: string; sellerId: string }) {
+    const existing = await this.prisma.client.conversation.findUnique({
+      where: { orderId: data.orderId },
+      include: { messages: true },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.prisma.client.conversation.create({
+      data: {
+        orderId: data.orderId,
+        buyerId: data.buyerId,
+        sellerId: data.sellerId,
+      },
+    });
+  }
+
+  async sendMessage(data: { conversationId: string; senderId: string; content: string }) {
+    return this.prisma.client.message.create({
+      data: {
+        conversationId: data.conversationId,
+        senderId: data.senderId,
+        content: data.content,
+      },
+    });
+  }
+
+  async getMessages(conversationId: string) {
+    return this.prisma.client.message.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
 }
