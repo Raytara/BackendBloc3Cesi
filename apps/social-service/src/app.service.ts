@@ -83,6 +83,22 @@ export class AppService {
   }
 
   async sendMessage(data: SendMessageDto) {
+    // 1. Vérifier que la conversation existe et que l'utilisateur en fait partie
+    const conversation = await this.prisma.client.conversation.findUnique({
+      where: { id: data.conversationId },
+    });
+
+    if (!conversation) {
+      throw new ConflictException('Conversation not found');
+    }
+
+    if (
+      conversation.buyerId !== data.senderId &&
+      conversation.sellerId !== data.senderId
+    ) {
+      throw new ConflictException('User is not part of this conversation');
+    }
+
     return this.prisma.client.message.create({
       data: {
         conversationId: data.conversationId,
@@ -92,10 +108,14 @@ export class AppService {
     });
   }
 
-  async getMessages(conversationId: string) {
+  async getMessages(conversationId: string, page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    
     return this.prisma.client.message.findMany({
       where: { conversationId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'desc' }, // Souvent on veut les plus récents d'abord pour la pagination
+      take: limit,
+      skip: skip,
     });
   }
 
