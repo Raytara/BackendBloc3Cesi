@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from './prisma/prismaService';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { CreateConversationDto, SendMessageDto } from './dto/conversation.dto';
 
 @Injectable()
 export class AppService {
@@ -35,7 +36,7 @@ export class AppService {
     };
   }
 
-  async findOrCreateConversation(data: { orderId: string; buyerId: string; sellerId: string }) {
+  async findOrCreateConversation(data: CreateConversationDto) {
     const existing = await this.prisma.client.conversation.findUnique({
       where: { orderId: data.orderId },
       include: { messages: true },
@@ -54,7 +55,7 @@ export class AppService {
     });
   }
 
-  async sendMessage(data: { conversationId: string; senderId: string; content: string }) {
+  async sendMessage(data: SendMessageDto) {
     return this.prisma.client.message.create({
       data: {
         conversationId: data.conversationId,
@@ -68,6 +69,21 @@ export class AppService {
     return this.prisma.client.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async getUserConversations(userId: string) {
+    return this.prisma.client.conversation.findMany({
+      where: {
+        OR: [{ buyerId: userId }, { sellerId: userId }],
+      },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
     });
   }
 }

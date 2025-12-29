@@ -46,8 +46,14 @@ export class SocialController {
     });
   }
 
-  @Get("conversation/:conversationId/messages")
-  getMessages(@Param("conversationId") conversationId: string) {
-    return this.socialClient.send("get_messages", conversationId);
+  @Get('conversation/:conversationId/messages')
+  getMessages(@Param('conversationId') conversationId: string) {
+    return this.socialClient.send('get_messages', conversationId);
+  }
+
+  @Get('my-conversations')
+  getUserConversations(@Req() req: any) {
+    const userId = req.user.sub;
+    return this.socialClient.send('get_user_conversations', userId);
   }
 }
