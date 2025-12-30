@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AdminAction {
+  CREATE
+  UPDATE
+  DELETE
+  BAN
+  UNBAN
+  APPROVE
+  REJECT
+}
+
+enum TargetType {
+  USER
+  ARTICLE
+  CATEGORY
+  REVIEW
+  ANNOUNCEMENT
+}
+
+model AdminLog {
+  id          String   @id @default(uuid())
+  adminId     String  
+  
+  action      AdminAction 
+  targetType  TargetType  
+  targetId    String      
+  
+  changes     Json?       
+  reason      String?     @db.Text
+  
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetId])
+  @@index([createdAt])
+}
