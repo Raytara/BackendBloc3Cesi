@@ -12,6 +12,7 @@ import { CommandeController } from './commande.controller';
 import { WebhookController } from './webhook.controller';
 import { PaymentCallbackController } from './payment-callback.controller';
 import { SocialController } from './social.controller';
+import { AdminController } from './admin.controller';
 
 @Module({
   imports: [
@@ -72,9 +73,20 @@ import { SocialController } from './social.controller';
           },
         },
       },
+      {
+        name: 'ADMIN_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'admin_queue',
+          queueOptions: {
+            durable: false
+          },
+        },
+      }
     ]),
   ],
-  controllers: [AppController, ArticleController, CommandeController, WebhookController, PaymentCallbackController, SocialController],
+  controllers: [AppController, ArticleController, CommandeController, WebhookController, PaymentCallbackController, SocialController, AdminController],
   providers: [
     AppService,
     Reflector,
