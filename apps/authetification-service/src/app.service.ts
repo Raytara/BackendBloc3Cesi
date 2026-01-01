@@ -2,18 +2,21 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PrismaService } from './prisma/prismaService'; 
+import { PrismaService } from './prisma/prismaService';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LogoutUserDto } from './dto/logout-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { BecomeSellerDto } from './dto/become-seller.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
 
 @Injectable()
 export class AppService implements OnModuleInit {
   private kcAdminClient: KcAdminClient;
 
-  constructor(private configService: ConfigService, private prismaService: PrismaService) {
-    
+  constructor(
+    private configService: ConfigService,
+    private prismaService: PrismaService,
+  ) {
     this.kcAdminClient = new KcAdminClient({
       baseUrl: this.configService.get<string>('KEYCLOAK_BASE_URL')!,
       realmName: this.configService.get<string>('KEYCLOAK_REALM')!,
@@ -31,14 +34,17 @@ export class AppService implements OnModuleInit {
         try {
           await this.kcAdminClient.auth({
             grantType: 'client_credentials',
-            clientId: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
-            clientSecret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+            clientId: this.configService.get<string>(
+              'KEYCLOAK_CLIENT_ID_NAME',
+            )!,
+            clientSecret: this.configService.get<string>(
+              'KEYCLOAK_CLIENT_SECRET',
+            )!,
           });
         } catch (error) {
           console.error('❌ Token refresh failed', error.message);
         }
       }, 58 * 1000);
-
     } catch (error) {
       console.error('❌ Failed to authenticate Keycloak Admin Client');
       console.error('Error:', error.responseData || error.message);
@@ -60,14 +66,16 @@ export class AppService implements OnModuleInit {
         lastName: createUserDto.lastName,
         enabled: true,
         emailVerified: true,
-        credentials: [{
-          type: 'password',
-          value: createUserDto.password,
-          temporary: false,
-        }],
+        credentials: [
+          {
+            type: 'password',
+            value: createUserDto.password,
+            temporary: false,
+          },
+        ],
       });
 
-      await this.assignRoleToUser(user.id, 'Acheteur'); 
+      await this.assignRoleToUser(user.id, 'Acheteur');
 
       await this.prismaService.client.user.create({
         data: {
@@ -102,19 +110,20 @@ export class AppService implements OnModuleInit {
       await this.kcAdminClient.users.addRealmRoleMappings({
         realm: this.configService.get<string>('KEYCLOAK_REALM')!,
         id: userId,
-        roles: [{
-          id: role.id!,
-          name: role.name!,
-        }],
+        roles: [
+          {
+            id: role.id!,
+            name: role.name!,
+          },
+        ],
       });
-
     } catch (error) {
       console.error(`Failed to assign role "${roleName}":`, error);
       throw error;
     }
   }
 
-  async login (loginUserDto: LoginUserDto) {
+  async login(loginUserDto: LoginUserDto) {
     try {
       const user = await this.prismaService.client.user.findUnique({
         where: { email: loginUserDto.email },
@@ -128,11 +137,13 @@ export class AppService implements OnModuleInit {
 
       // Utiliser fetch pour obtenir les tokens
       const tokenUrl = `${this.configService.get<string>('KEYCLOAK_BASE_URL')}/realms/${this.configService.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/token`;
-      
+
       const params = new URLSearchParams({
         grant_type: 'password',
         client_id: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
-        client_secret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+        client_secret: this.configService.get<string>(
+          'KEYCLOAK_CLIENT_SECRET',
+        )!,
         username: loginUserDto.email,
         password: loginUserDto.password,
       });
@@ -174,8 +185,10 @@ export class AppService implements OnModuleInit {
   async becomeSeller(becomeSellerDto: BecomeSellerDto) {
     try {
       // Decode JWT to extract user ID (sub claim)
-      const payload = JSON.parse(Buffer.from(becomeSellerDto.jwt.split('.')[1], 'base64').toString());
-      
+      const payload = JSON.parse(
+        Buffer.from(becomeSellerDto.jwt.split('.')[1], 'base64').toString(),
+      );
+
       if (!payload || !payload.sub) {
         throw new Error('Invalid JWT token');
       }
@@ -207,7 +220,7 @@ export class AppService implements OnModuleInit {
     } catch (error) {
       console.error('Failed to promote user to seller:', error);
       throw new Error('Failed to promote user to seller');
-    } 
+    }
   }
 
   async logout(logoutUserDto: LogoutUserDto) {
@@ -216,7 +229,9 @@ export class AppService implements OnModuleInit {
 
       const params = new URLSearchParams({
         client_id: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
-        client_secret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+        client_secret: this.configService.get<string>(
+          'KEYCLOAK_CLIENT_SECRET',
+        )!,
         refresh_token: logoutUserDto.refresh_token,
       });
 
@@ -236,17 +251,19 @@ export class AppService implements OnModuleInit {
     } catch (error) {
       console.error('Failed to logout:', error);
       throw new Error('Failed to logout');
-    } 
+    }
   }
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     try {
       const tokenUrl = `${this.configService.get<string>('KEYCLOAK_BASE_URL')}/realms/${this.configService.get<string>('KEYCLOAK_REALM')}/protocol/openid-connect/token`;
-      
+
       const params = new URLSearchParams({
         grant_type: 'refresh_token',
         client_id: this.configService.get<string>('KEYCLOAK_CLIENT_ID_NAME')!,
-        client_secret: this.configService.get<string>('KEYCLOAK_CLIENT_SECRET')!,
+        client_secret: this.configService.get<string>(
+          'KEYCLOAK_CLIENT_SECRET',
+        )!,
         refresh_token: refreshTokenDto.refresh_token,
       });
 
@@ -271,6 +288,60 @@ export class AppService implements OnModuleInit {
     } catch (error) {
       console.error('Failed to refresh token:', error);
       throw new Error('Invalid refresh token');
+    }
+  }
+
+  async createAdmin(createAdminDto: CreateAdminDto) {
+    try {
+      // 1. Créer l'utilisateur dans Keycloak
+      const user = await this.kcAdminClient.users.create({
+        realm: this.configService.get<string>('KEYCLOAK_REALM')!,
+        username: createAdminDto.username,
+        email: createAdminDto.email,
+        firstName: createAdminDto.firstName,
+        lastName: createAdminDto.lastName,
+        enabled: true,
+        emailVerified: true,
+        credentials: [
+          {
+            type: 'password',
+            value: createAdminDto.password,
+            temporary: false,
+          },
+        ],
+      });
+
+      // 2. Assigner le rôle Admin
+      await this.assignRoleToUser(user.id, 'Admin');
+
+      // 3. Créer l'utilisateur dans la base de données
+      const dbUser = await this.prismaService.client.user.create({
+        data: {
+          keycloakId: user.id!,
+          username: createAdminDto.username,
+          email: createAdminDto.email,
+          firstName: createAdminDto.firstName,
+          lastName: createAdminDto.lastName,
+          password: '',
+          role: 'ADMIN',
+        },
+      });
+
+      return {
+        success: true,
+        user: {
+          id: user.id,
+          username: dbUser.username,
+          email: dbUser.email,
+          role: dbUser.role,
+        },
+      };
+    } catch (error) {
+      console.error('Failed to create admin:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to create admin',
+      };
     }
   }
 }

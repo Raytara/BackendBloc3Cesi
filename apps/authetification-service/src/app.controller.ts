@@ -6,15 +6,16 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { LogoutUserDto } from './dto/logout-user.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { BecomeSellerDto } from './dto/become-seller.dto';
+import { CreateAdminDto } from './dto/create-admin.dto';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) { }
+  constructor(private readonly appService: AppService) {}
 
   @MessagePattern('hello_users_service')
   getHello(): string {
-    console.log("[UsersService] Message hello reçu");
-    return "Hello world from Users Microservice";
+    console.log('[UsersService] Message hello reçu');
+    return 'Hello world from Users Microservice';
   }
 
   @MessagePattern('create_user')
@@ -40,5 +41,10 @@ export class AppController {
   @MessagePattern('refresh_token')
   async refreshToken(@Payload() data: RefreshTokenDto) {
     return await this.appService.refreshToken(data);
+  }
+
+  @MessagePattern('create_admin_user')
+  async createAdmin(@Payload() data: CreateAdminDto) {
+    return await this.appService.createAdmin(data);
   }
 }
