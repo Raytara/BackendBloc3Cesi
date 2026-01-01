@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { prisma } from '../lib/prisma';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { CreateMagasinDto } from './dto/create-magasin.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
 import { Status } from '@prisma/client';
 
 @Injectable()
@@ -31,12 +32,12 @@ export class AppService {
 
   async getArticleByCategorie(categoryId: string) {
     const filtered = await prisma.article.findMany({
-      where: { 
+      where: {
         categoryId: categoryId.trim(),
-        status: Status.APPROUVE 
+        status: Status.APPROUVE,
       },
     });
-    return filtered;  
+    return filtered;
   }
 
   async createMagasin(createMagasinDto: CreateMagasinDto) {
@@ -52,12 +53,16 @@ export class AppService {
 
   async updateStock(productId: string, quantity: number) {
     try {
-      const article = await prisma.article.findUnique({ where: { id: productId } });
+      const article = await prisma.article.findUnique({
+        where: { id: productId },
+      });
       if (article && article.stock !== null) {
         const newStock = article.stock - quantity;
         const finalStock = newStock >= 0 ? newStock : 0;
 
-        const updateData: { stock: number; status?: Status } = { stock: finalStock };
+        const updateData: { stock: number; status?: Status } = {
+          stock: finalStock,
+        };
         if (finalStock === 0) {
           updateData.status = Status.VENDU;
         }
@@ -66,7 +71,9 @@ export class AppService {
           where: { id: productId },
           data: updateData,
         });
-        console.log(`Stock updated for article ${productId}. New stock: ${finalStock}`);
+        console.log(
+          `Stock updated for article ${productId}. New stock: ${finalStock}`,
+        );
       } else {
         console.warn(`Article ${productId} not found or stock is null.`);
       }
@@ -77,16 +84,18 @@ export class AppService {
 
   private containsBannedWords(text: string): boolean {
     if (!text) return false;
-    
+
     const lowerText = text.toLowerCase();
-    return this.bannedWords.some(word => lowerText.includes(word.toLowerCase()));
+    return this.bannedWords.some((word) =>
+      lowerText.includes(word.toLowerCase()),
+    );
   }
 
   async createArticle(createArticleDto: CreateArticleDto) {
-    const hasBannedWords = 
-      this.containsBannedWords(createArticleDto.title) || 
+    const hasBannedWords =
+      this.containsBannedWords(createArticleDto.title) ||
       this.containsBannedWords(createArticleDto.description || '');
-    
+
     const status = hasBannedWords ? Status.EN_ATTENTE : Status.APPROUVE;
 
     const article = await prisma.article.create({
@@ -102,14 +111,37 @@ export class AppService {
       },
     });
 
-    const message = hasBannedWords 
+    const message = hasBannedWords
       ? 'Article created successfully - En attente de modération (mots suspects détectés)'
       : 'Article created successfully - Approuvé automatiquement';
 
-    return { 
-      message, 
+    return {
+      message,
       article,
-      autoApproved: !hasBannedWords 
+      autoApproved: !hasBannedWords,
     };
+  }
+
+  async createCategory(createCategoryDto: CreateCategoryDto) {
+    try {
+      const category = await prisma.category.create({
+        data: {
+          name: createCategoryDto.name,
+        },
+      });
+      return {
+        success: true,
+        category,
+      };
+    } catch (error) {
+      // Prisma retourne P2002 pour violation de contrainte unique
+      if (error.code === 'P2002') {
+        return {
+          success: false,
+          error: 'Une catégorie avec ce nom existe déjà',
+        };
+      }
+      throw error;
+    }
   }
 }

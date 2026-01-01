@@ -3,6 +3,7 @@ import { AppService } from './app.service';
 import { MessagePattern, EventPattern, Payload } from '@nestjs/microservices';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { CreateMagasinDto } from './dto/create-magasin.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Controller('articles')
 export class AppController {
@@ -10,8 +11,8 @@ export class AppController {
 
   @MessagePattern('hello_article_service')
   getHello(): string {
-    console.log("[ArticleService] Message hello reçu");
-    return "Hello world from Article Microservice";
+    console.log('[ArticleService] Message hello reçu');
+    return 'Hello world from Article Microservice';
   }
 
   @MessagePattern('get_all_articles')
@@ -35,9 +36,14 @@ export class AppController {
   }
 
   @EventPattern('order_confirmed')
-  async handleOrderConfirmed(@Payload() order: any) {   
+  async handleOrderConfirmed(@Payload() order: any) {
     if (order.productId && order.quantity) {
       await this.appService.updateStock(order.productId, order.quantity);
     }
+  }
+
+  @MessagePattern('create_category')
+  createCategory(@Payload() createCategoryDto: CreateCategoryDto) {
+    return this.appService.createCategory(createCategoryDto);
   }
 }

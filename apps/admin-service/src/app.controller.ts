@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AppService } from './app.service';
+import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Controller()
 export class AppController {
@@ -9,5 +10,10 @@ export class AppController {
   @MessagePattern('getHello')
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @MessagePattern('admin_create_category')
+  createCategory(@Payload() createCategoryDto: CreateCategoryDto) {
+    return this.appService.createCategory(createCategoryDto);
   }
 }
