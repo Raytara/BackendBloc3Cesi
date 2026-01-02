@@ -22,4 +22,23 @@ export class AppController {
   createAdmin(@Payload() createAdminDto: CreateAdminDto) {
     return this.appService.createAdmin(createAdminDto);
   }
+
+  @MessagePattern('admin_get_all_users')
+  getAllUsers(@Payload() data: { adminId: string }) {
+    return this.appService.getAllUsers(data);
+  }
+
+  @MessagePattern('admin_ban_user')
+  banUser(
+    @Payload() data: { userId: string; reason?: string; adminId: string },
+  ) {
+    return this.appService.banUser(data);
+  }
+
+  @MessagePattern('admin_unban_user')
+  unbanUser(
+    @Payload() data: { userId: string; reason?: string; adminId: string },
+  ) {
+    return this.appService.unbanUser(data);
+  }
 }

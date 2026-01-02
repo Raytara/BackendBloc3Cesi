@@ -344,4 +344,167 @@ export class AppService implements OnModuleInit {
       };
     }
   }
+
+  async getAllUsers() {
+    try {
+      // Récupérer tous les utilisateurs
+      const users = await this.prismaService.client.user.findMany({
+        select: {
+          id: true,
+          keycloakId: true,
+          username: true,
+          email: true,
+          role: true,
+          isBanned: true,
+          createdAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        users,
+        total: users.length,
+      };
+    } catch (error) {
+      console.error('Failed to get all users:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to get all users',
+      };
+    }
+  }
+
+  async banUser(userId: string, reason?: string) {
+    try {
+      // 1. Récupérer l'utilisateur
+      const user = await this.prismaService.client.user.findUnique({
+        where: { keycloakId: userId },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          error: 'Utilisateur non trouvé',
+        };
+      }
+
+      // 2. Vérifier s'il est déjà banni
+      if (user.isBanned) {
+        return {
+          success: false,
+          error: 'Utilisateur déjà banni',
+        };
+      }
+
+      // 3. Mettre à jour dans Prisma
+      const updatedUser = await this.prismaService.client.user.update({
+        where: { keycloakId: userId },
+        data: { isBanned: true },
+        select: {
+          id: true,
+          keycloakId: true,
+          username: true,
+          email: true,
+          role: true,
+          isBanned: true,
+          createdAt: true,
+        },
+      });
+
+      // 4. Désactiver dans Keycloak
+      try {
+        await this.kcAdminClient.users.update(
+          {
+            realm: this.configService.get<string>('KEYCLOAK_REALM')!,
+            id: userId,
+          },
+          {
+            enabled: false,
+          },
+        );
+      } catch (keycloakError) {
+        console.error('Failed to disable user in Keycloak:', keycloakError);
+        // On continue même si Keycloak échoue (l'utilisateur est marqué banni dans Prisma)
+      }
+
+      return {
+        success: true,
+        user: updatedUser,
+        message: `Utilisateur ${user.username} banni avec succès`,
+      };
+    } catch (error) {
+      console.error('Failed to ban user:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to ban user',
+      };
+    }
+  }
+
+  async unbanUser(userId: string, reason?: string) {
+    try {
+      // 1. Récupérer l'utilisateur
+      const user = await this.prismaService.client.user.findUnique({
+        where: { keycloakId: userId },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          error: 'Utilisateur non trouvé',
+        };
+      }
+
+      // 2. Vérifier s'il est banni
+      if (!user.isBanned) {
+        return {
+          success: false,
+          error: "Utilisateur n'est pas banni",
+        };
+      }
+
+      // 3. Mettre à jour dans Prisma
+      const updatedUser = await this.prismaService.client.user.update({
+        where: { keycloakId: userId },
+        data: { isBanned: false },
+        select: {
+          id: true,
+          keycloakId: true,
+          username: true,
+          email: true,
+          role: true,
+          isBanned: true,
+          createdAt: true,
+        },
+      });
+
+      // 4. Réactiver dans Keycloak
+      try {
+        await this.kcAdminClient.users.update(
+          {
+            realm: this.configService.get<string>('KEYCLOAK_REALM')!,
+            id: userId,
+          },
+          {
+            enabled: true,
+          },
+        );
+      } catch (keycloakError) {
+        console.error('Failed to enable user in Keycloak:', keycloakError);
+        // On continue même si Keycloak échoue (l'utilisateur est marqué débanni dans Prisma)
+      }
+
+      return {
+        success: true,
+        user: updatedUser,
+        message: `Utilisateur ${user.username} débanni avec succès`,
+      };
+    } catch (error) {
+      console.error('Failed to unban user:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to unban user',
+      };
+    }
+  }
 }

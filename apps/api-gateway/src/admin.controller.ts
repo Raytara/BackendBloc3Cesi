@@ -1,10 +1,11 @@
-import { Controller, Inject, Post, Body, Req } from '@nestjs/common';
+import { Controller, Inject, Post, Body, Req, Param } from '@nestjs/common';
 import { Get } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Public, Roles } from 'nest-keycloak-connect';
 import { Observable } from 'rxjs';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';
+import { BanUserDto } from './dto/ban-user.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -84,6 +85,101 @@ export class AdminController {
     const adminId = req.user.sub; // Récupère l'ID de l'admin qui crée le compte
     return this.adminService.send('admin_create_admin', {
       ...createAdminDto,
+      adminId,
+    });
+  }
+
+  @Get('users')
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Récupérer tous les utilisateurs (admins uniquement)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des utilisateurs récupérée avec succès',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Non autorisé',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès interdit - Rôle Admin requis',
+  })
+  getAllUsers(@Req() req: any) {
+    const adminId = req.user.sub;
+    return this.adminService.send('admin_get_all_users', {
+      adminId,
+    });
+  }
+
+  @Post('users/:userId/ban')
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bannir un utilisateur (admins uniquement)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Utilisateur banni avec succès',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Impossible de se bannir soi-même',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Non autorisé',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès interdit - Rôle Admin requis',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Utilisateur non trouvé',
+  })
+  banUser(
+    @Param('userId') userId: string,
+    @Body() banUserDto: BanUserDto,
+    @Req() req: any,
+  ) {
+    const adminId = req.user.sub;
+    return this.adminService.send('admin_ban_user', {
+      userId,
+      reason: banUserDto.reason,
+      adminId,
+    });
+  }
+
+  @Post('users/:userId/unban')
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Débannir un utilisateur (admins uniquement)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Utilisateur débanni avec succès',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Non autorisé',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Accès interdit - Rôle Admin requis',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Utilisateur non trouvé',
+  })
+  unbanUser(
+    @Param('userId') userId: string,
+    @Body() banUserDto: BanUserDto,
+    @Req() req: any,
+  ) {
+    const adminId = req.user.sub;
+    return this.adminService.send('admin_unban_user', {
+      userId,
+      reason: banUserDto.reason,
       adminId,
     });
   }

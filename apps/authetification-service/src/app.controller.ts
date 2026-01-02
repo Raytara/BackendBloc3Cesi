@@ -47,4 +47,19 @@ export class AppController {
   async createAdmin(@Payload() data: CreateAdminDto) {
     return await this.appService.createAdmin(data);
   }
+
+  @MessagePattern('get_all_users')
+  async getAllUsers() {
+    return await this.appService.getAllUsers();
+  }
+
+  @MessagePattern('ban_user')
+  async banUser(@Payload() data: { userId: string; reason?: string }) {
+    return await this.appService.banUser(data.userId, data.reason);
+  }
+
+  @MessagePattern('unban_user')
+  async unbanUser(@Payload() data: { userId: string; reason?: string }) {
+    return await this.appService.unbanUser(data.userId, data.reason);
+  }
 }
